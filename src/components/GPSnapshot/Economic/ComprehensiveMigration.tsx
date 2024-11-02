@@ -2,8 +2,16 @@ import React from 'react';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { Box } from '@mui/material';
 
+interface VillageData {
+  seasonalMigrantsMale: number;
+  seasonalMigrantsFemale: number;
+  permanentMigrantsMale: number;
+  permanentMigrantsFemale: number;
+  householdsReportingMigration: number;
+}
+
 interface ComprehensiveMigrationProps {
-  data: any;
+  data: Record<string, VillageData>;
   selectedVillage: string;
 }
 
@@ -13,7 +21,7 @@ const ComprehensiveMigration: React.FC<ComprehensiveMigrationProps> = ({ data, s
 
     let chartData;
     if (selectedVillage === 'All') {
-      chartData = Object.entries(data).map(([village, values]: [string, any]) => ({
+      chartData = Object.entries(data).map(([village, values]: [string, VillageData]) => ({
         village,
         seasonalMale: values.seasonalMigrantsMale,
         seasonalFemale: values.seasonalMigrantsFemale,

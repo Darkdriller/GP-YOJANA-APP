@@ -80,15 +80,16 @@ const DataCollectionTable: React.FC<DataCollectionTableProps> = ({
   }, [villages, initialData]);
 
   const handleInputChange = (village: string, field: keyof DemographicsData[string], value: string) => {
-    setData(prevData => ({
-      ...prevData,
+    const newData = {
+      ...data,
       [village]: {
-        ...prevData[village],
+        ...data[village],
         [field]: value
       }
-    }));
+    };
+    setData(newData);
     if (onDataChange) {
-      debouncedOnDataChange({ ...data, [village]: { ...data[village], [field]: value } });
+      debouncedOnDataChange(newData);
     }
   };
 

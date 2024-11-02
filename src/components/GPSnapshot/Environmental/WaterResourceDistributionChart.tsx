@@ -15,10 +15,40 @@ import { WaterResourceDistributionChartProps, WaterBody } from '@/types';
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 
-// Define colors for Water Levels
+interface ChartData {
+  type: string;
+  Seasonal: number;
+  Perennial: number;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    payload: ChartData;
+  }>;
+  label?: string;
+}
+
+interface CustomLabelProps {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  value: number;
+}
+
+interface LegendProps {
+  payload: Array<{
+    value: string;
+    color: string;
+  }>;
+}
+
 const WATER_LEVEL_COLORS: { [key in WaterBody['waterLevel']]: string } = {
-  Seasonal: '#FF8042',    // Orange
-  Perennial: '#0088FE',   // Blue
+  Seasonal: '#FF8042',
+  Perennial: '#0088FE',
 };
 
 const ChartWrapper = styled(Box)(({ theme }) => ({
@@ -30,14 +60,10 @@ const ChartWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
 }));
 
-const CustomTooltip = ({
+const CustomTooltip: React.FC<TooltipProps> = ({
   active,
   payload,
   label,
-}: {
-  active?: boolean;
-  payload?: any;
-  label?: string;
 }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -54,7 +80,7 @@ const CustomTooltip = ({
         <Typography variant="subtitle1" fontWeight="bold">
           {data.type}
         </Typography>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <Typography key={index} variant="body2">
             {entry.name}: {entry.value?.toFixed(1) || 0} ha
           </Typography>
@@ -65,7 +91,7 @@ const CustomTooltip = ({
   return null;
 };
 
-const CustomLabel = (props: any) => {
+const CustomLabel: React.FC<CustomLabelProps> = (props) => {
   const { x, y, width, height, value } = props;
   if (!value || value === 0) return null;
   
@@ -83,11 +109,11 @@ const CustomLabel = (props: any) => {
   );
 };
 
-const renderLegend = (props: any) => {
+const renderLegend: React.FC<LegendProps> = (props) => {
   const { payload } = props;
   return (
     <Box sx={{ display: 'flex', gap: 2 }}>
-      {payload.map((entry: any, index: number) => (
+      {payload.map((entry, index) => (
         <Box key={`item-${index}`} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Box
             sx={{
@@ -115,11 +141,9 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
 
     console.log('Processing water bodies for:', selectedVillage);
 
-    // Filter water bodies based on selected village
     const filteredWaterBodies = selectedVillage === 'All'
       ? waterBodies
       : waterBodies.filter(wb => {
-          // Check if locations array exists and includes the selected village
           return Array.isArray(wb?.locations) && 
                  wb.locations.some(location => 
                    location.toLowerCase() === selectedVillage.toLowerCase()
@@ -128,10 +152,8 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
 
     console.log('Filtered water bodies:', filteredWaterBodies);
 
-    // Get unique types
     const types = Array.from(new Set(filteredWaterBodies.map(wb => wb?.type).filter(Boolean)));
 
-    // Create chart data
     const data = types.map(type => {
       const seasonal = filteredWaterBodies
         .filter(wb => wb?.type === type && wb?.waterLevel === 'Seasonal')
@@ -152,11 +174,11 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
     return data;
   }, [waterBodies, selectedVillage]);
 
-  const handleBarClick = (data: any, index: number) => {
+  const handleBarClick = (data: ChartData) => {
     if (!waterBodies?.length) return;
     
     const waterBody = waterBodies.find(
-      (wb) => wb?.type === data.type && wb?.waterLevel === (index === 0 ? 'Seasonal' : 'Perennial')
+      (wb) => wb?.type === data.type
     );
     
     if (waterBody?.id) {
@@ -213,18 +235,18 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
             stackId="a"
             fill={WATER_LEVEL_COLORS['Seasonal']}
             name="Seasonal"
-            onClick={(data, index) => handleBarClick(data, 0)}
+            onClick={handleBarClick}
           >
-            <LabelList content={CustomLabel} position="center" />
+            <LabelList content={<CustomLabel />} position="center" />
           </Bar>
           <Bar
             dataKey="Perennial"
             stackId="a"
             fill={WATER_LEVEL_COLORS['Perennial']}
             name="Perennial"
-            onClick={(data, index) => handleBarClick(data, 1)}
+            onClick={handleBarClick}
           >
-            <LabelList content={CustomLabel} position="center" />
+            <LabelList content={<CustomLabel />} position="center" />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
