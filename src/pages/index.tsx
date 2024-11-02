@@ -1,114 +1,270 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import Image from 'next/image';
+import { AppBar, Toolbar, Button, Container, Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useLanguage } from '../context/LanguageContext';
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+// Styled components
+const StyledAppBar = styled(AppBar)({
+  backgroundColor: '#f0f7ff', // Light blue color
+  boxShadow: 'none',
+  position: 'relative',
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+
+const NavButton = styled(Button)({
+  color: '#1a365d', // Dark navy blue
+  textTransform: 'none',
+  padding: '8px 16px',
+  '&:hover': {
+    backgroundColor: 'rgba(26, 54, 93, 0.1)',
+  },
+});
+
+const AuthButton = styled(Button)({
+  backgroundColor: '#1a365d',
+  color: 'white',
+  padding: '8px 24px',
+  '&:hover': {
+    backgroundColor: '#142844',
+  },
+});
+
+const LanguageToggle = styled(ToggleButtonGroup)({
+  margin: '0 16px',
+  '& .MuiToggleButton-root': {
+    color: '#1a365d',
+    borderColor: '#1a365d',
+    '&.Mui-selected': {
+      backgroundColor: '#1a365d',
+      color: 'white',
+      '&:hover': {
+        backgroundColor: '#142844',
+      },
+    },
+  },
+});
+
+const DepartmentTitle = styled(Typography)({
+  color: '#1a365d',
+  fontWeight: 600,
+  fontSize: '1.25rem',
+  lineHeight: 1.4,
+});
+
+const DepartmentSubtitle = styled(Typography)({
+  color: '#1a365d',
+  fontSize: '0.875rem',
+  lineHeight: 1.4,
 });
 
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const router = useRouter();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const user = null; // Replace with your actual auth logic
+  const { language, setLanguage, t } = useLanguage();
+  const [authDialog, setAuthDialog] = useState({ open: false, isLogin: true });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    if (user) {
+      router.push('/home');
+    }
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, [user, router]);
+
+  const handleLanguageChange = (event, newLanguage) => {
+    if (newLanguage !== null) {
+      setLanguage(newLanguage);
+    }
+  };
+
+  const openAuthDialog = (isLogin) => {
+    setAuthDialog({ open: true, isLogin });
+  };
+
+  const closeAuthDialog = () => {
+    setAuthDialog({ ...authDialog, open: false });
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Header */}
+      <StyledAppBar>
+        <Container maxWidth="xl">
+          <Toolbar className="px-0">
+            <div className="flex items-center flex-1">
+              {/* Logo and Department Name */}
+              <div className="flex items-center gap-4">
+                <Image
+                  src="/images/Seal_of_Odisha.png"
+                  alt="Seal of Odisha"
+                  width={60}
+                  height={60}
+                  className="object-contain"
+                />
+                <div className="flex flex-col">
+                  <DepartmentTitle>
+                    {t('dept.name')}
+                  </DepartmentTitle>
+                  <DepartmentSubtitle>
+                    {t('dept.govt')}
+                  </DepartmentSubtitle>
+                </div>
+              </div>
+
+              {/* Navigation and Auth */}
+              <div className="flex items-center ml-auto gap-4">
+                <Link href="/" passHref legacyBehavior>
+                  <NavButton component="a">{t('nav.home')}</NavButton>
+                </Link>
+                <Link href="/about" passHref legacyBehavior>
+                  <NavButton component="a">{t('nav.about')}</NavButton>
+                </Link>
+                <Link href="/programme" passHref legacyBehavior>
+                  <NavButton component="a">{t('nav.programme')}</NavButton>
+                </Link>
+                <Link href="/projects" passHref legacyBehavior>
+                  <NavButton component="a">{t('nav.projects')}</NavButton>
+                </Link>
+
+                {/* Language Toggle */}
+                <LanguageToggle
+                  value={language}
+                  exclusive
+                  onChange={handleLanguageChange}
+                  aria-label="language"
+                  size="small"
+                >
+                  <ToggleButton value="en">
+                    ENG
+                  </ToggleButton>
+                  <ToggleButton value="od">
+                    ଓଡ଼ିଆ
+                  </ToggleButton>
+                </LanguageToggle>
+
+                {/* Auth Buttons */}
+                <div className="flex gap-2">
+                  <Link href="/signup" passHref legacyBehavior>
+                    <AuthButton 
+                      component="a"
+                      variant="contained"
+                    >
+                      {t('auth.signup')}
+                    </AuthButton>
+                  </Link>
+                  <Link href="/login" passHref legacyBehavior>
+                    <AuthButton 
+                      component="a"
+                      variant="contained"
+                    >
+                      {t('auth.login')}
+                    </AuthButton>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </Toolbar>
+        </Container>
+      </StyledAppBar>
+
+      {/* Main Content with 70/30 Split */}
+      <div className="flex flex-1">
+        {/* Left side - Image (70%) */}
+        <div className="w-[70%] relative">
+          <Image
+            src="/images/Cover page.jpg"
+            layout="fill"
+            objectFit="cover"
+            quality={100}
+            alt="Background"
+            className="z-0"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-black/20 to-black/30 z-10" />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+        {/* Right side - Content (30%) */}
+        <div className="w-[30%] bg-white p-8 overflow-y-auto">
+          <div className={`transition-all duration-1000 ease-in-out ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
+            <Typography
+              variant="h4"
+              className="text-[#1a365d] font-bold mb-6"
+            >
+              {t('about.title')}
+            </Typography>
+
+            <Typography variant="body1" className="text-gray-700 mb-6 leading-relaxed">
+              {t('about.p1')}
+            </Typography>
+
+            <Typography variant="body1" className="text-gray-700 mb-6 leading-relaxed">
+              {t('about.p2')}
+            </Typography>
+
+            <Typography variant="body1" className="text-gray-700 mb-6 leading-relaxed">
+              {t('about.p3')}
+            </Typography>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-[#1a365d] text-white py-4">
+        <Container maxWidth="xl">
+          <div className="flex justify-between items-center">
+            <div>
+              <Typography variant="body2">
+                {t('footer.address.line1')}
+              </Typography>
+              <Typography variant="body2">
+                {t('footer.address.line2')}
+              </Typography>
+              <Typography variant="body2">
+                {t('footer.address.line3')}
+              </Typography>
+            </div>
+            <div className="flex gap-8">
+              <div>
+                <Typography variant="subtitle2" className="font-bold mb-2">
+                  {t('footer.quicklinks')}
+                </Typography>
+                <div className="flex flex-col gap-1">
+                  <Link href="/" passHref legacyBehavior>
+                    <a className="text-sm text-gray-300 hover:text-white">
+                      {t('nav.home')}
+                    </a>
+                  </Link>
+                  <Link href="/about" passHref legacyBehavior>
+                    <a className="text-sm text-gray-300 hover:text-white">
+                      {t('nav.about')}
+                    </a>
+                  </Link>
+                </div>
+              </div>
+              <div>
+                <Typography variant="subtitle2" className="font-bold mb-2">
+                  {t('footer.followus')}
+                </Typography>
+                <div className="flex flex-col gap-1">
+                  <Link href="#" className="text-sm text-gray-300 hover:text-white">
+                    Twitter
+                  </Link>
+                  <Link href="#" className="text-sm text-gray-300 hover:text-white">
+                    LinkedIn
+                  </Link>
+                  <Link href="#" className="text-sm text-gray-300 hover:text-white">
+                    Facebook
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Container>
       </footer>
     </div>
   );
