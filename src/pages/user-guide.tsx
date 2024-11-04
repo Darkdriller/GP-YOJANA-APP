@@ -60,7 +60,7 @@ const UserGuide: React.FC = () => {
             <Card sx={{ mb: 2, bgcolor: '#f8f9fa' }}>
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom>
-                  When you first sign up, you'll be asked to select your role:
+                  When you first sign up, you&apos;ll be asked to select your role:
                 </Typography>
                 <List>
                   <ListItem>

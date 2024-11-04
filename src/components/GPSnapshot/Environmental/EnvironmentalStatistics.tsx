@@ -1,3 +1,5 @@
+// src/components/GPSnapshot/Environmental/EnvironmentalStatistics.tsx
+
 import React, { useMemo } from 'react';
 import { 
   Trees, 
@@ -15,28 +17,36 @@ interface StatCardProps {
   subtitle?: string;
 }
 
+interface LandUseDataEntry {
+  totalCultivableLand: number;
+  irrigatedLand: number;
+  forestArea: number;
+}
+
+interface WaterBody {
+  type: string;
+  irrigationPotential: number;
+  condition: string;
+  locations: string[];
+}
+
+interface IrrigationStructure {
+  type: string;
+  status: string;
+  irrigationPotential: number;
+  location: string;
+}
+
+interface WaterResourcesData {
+  waterBodies: WaterBody[];
+  irrigationStructures: IrrigationStructure[];
+}
+
 interface EnvironmentalStatisticsProps {
   landUseData: {
-    [key: string]: {
-      totalCultivableLand: number;
-      irrigatedLand: number;
-      forestArea: number;
-    };
+    [key: string]: LandUseDataEntry;
   } | null;
-  waterResourcesData: {
-    waterBodies: Array<{
-      type: string;
-      irrigationPotential: number;
-      condition: string;
-      locations: string[];  // Updated to match the data structure
-    }>;
-    irrigationStructures: Array<{
-      type: string;
-      status: string;
-      irrigationPotential: number;
-      location: string;    // Single location string
-    }>;
-  } | null;
+  waterResourcesData: WaterResourcesData | null;
   selectedVillage: string;
 }
 
@@ -66,53 +76,66 @@ const EnvironmentalStatistics: React.FC<EnvironmentalStatisticsProps> = ({
     if (!landUseData || !waterResourcesData) return null;
 
     // Calculate land use statistics
-    const calculateLandUseStats = () => {
+    const calculateLandUseStats = (): {
+      totalCultivable: number;
+      irrigated: number;
+      forest: number;
+    } => {
       if (selectedVillage === 'All') {
         return Object.values(landUseData).reduce((acc, village) => ({
-          totalCultivable: acc.totalCultivable + (Number(village.totalCultivableLand) || 0),
-          irrigated: acc.irrigated + (Number(village.irrigatedLand) || 0),
-          forest: acc.forest + (Number(village.forestArea) || 0)
+          totalCultivable: acc.totalCultivable + (village.totalCultivableLand || 0),
+          irrigated: acc.irrigated + (village.irrigatedLand || 0),
+          forest: acc.forest + (village.forestArea || 0)
         }), { totalCultivable: 0, irrigated: 0, forest: 0 });
       } else {
-        const villageData = landUseData[selectedVillage] || {};
+        const villageData: LandUseDataEntry = landUseData[selectedVillage] || {
+          totalCultivableLand: 0,
+          irrigatedLand: 0,
+          forestArea: 0
+        };
         return {
-          totalCultivable: Number(villageData.totalCultivableLand) || 0,
-          irrigated: Number(villageData.irrigatedLand) || 0,
-          forest: Number(villageData.forestArea) || 0
+          totalCultivable: villageData.totalCultivableLand || 0,
+          irrigated: villageData.irrigatedLand || 0,
+          forest: villageData.forestArea || 0
         };
       }
     };
 
     // Calculate water resources statistics
     const calculateWaterStats = () => {
+      // Normalize selectedVillage to lowercase for case-insensitive comparison
+      const normalizedVillage = selectedVillage.toLowerCase();
+
       // Filter water bodies based on selected village
       const filteredWaterBodies = selectedVillage === 'All' 
         ? waterResourcesData.waterBodies
         : waterResourcesData.waterBodies.filter(wb => 
-            Array.isArray(wb.locations) && 
-            wb.locations.some(loc => loc.toLowerCase() === selectedVillage.toLowerCase())
+            wb.locations.some(loc => loc.toLowerCase() === normalizedVillage)
           );
 
       // Filter irrigation structures based on selected village
       const filteredIrrigationStructures = selectedVillage === 'All'
         ? waterResourcesData.irrigationStructures
         : waterResourcesData.irrigationStructures.filter(structure =>
-            structure.location.toLowerCase() === selectedVillage.toLowerCase()
+            structure.location.toLowerCase() === normalizedVillage
           );
 
       console.log('Filtered Water Bodies:', filteredWaterBodies);
       console.log('Filtered Irrigation Structures:', filteredIrrigationStructures);
 
+      const totalWaterBodies = filteredWaterBodies.length;
+      const totalIrrigationStructures = filteredIrrigationStructures.length;
+      const totalIrrigationPotential = filteredWaterBodies.reduce((sum, wb) => sum + (wb.irrigationPotential || 0), 0) +
+                                         filteredIrrigationStructures.reduce((sum, is) => sum + (is.irrigationPotential || 0), 0);
+      const structuresNeedingRepair = filteredIrrigationStructures.filter(
+        structure => structure.status === 'Needs Repairs' || structure.status === 'Critical Condition'
+      ).length;
+
       return {
-        totalWaterBodies: filteredWaterBodies.length,
-        totalIrrigationStructures: filteredIrrigationStructures.length,
-        totalIrrigationPotential: (
-          filteredWaterBodies.reduce((sum, wb) => sum + (Number(wb.irrigationPotential) || 0), 0) +
-          filteredIrrigationStructures.reduce((sum, is) => sum + (Number(is.irrigationPotential) || 0), 0)
-        ),
-        structuresNeedingRepair: filteredIrrigationStructures.filter(
-          structure => structure.status === 'Needs Repairs' || structure.status === 'Critical Condition'
-        ).length
+        totalWaterBodies,
+        totalIrrigationStructures,
+        totalIrrigationPotential,
+        structuresNeedingRepair
       };
     };
 

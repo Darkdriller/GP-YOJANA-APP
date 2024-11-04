@@ -1,3 +1,5 @@
+// src/components/GPSnapshot/Environmental/WaterResourceDistributionChart.tsx
+
 import React, { useMemo } from 'react';
 import {
   BarChart,
@@ -11,26 +13,45 @@ import {
   LabelList
 } from 'recharts';
 import { Typography, Box } from '@mui/material';
-import { WaterResourceDistributionChartProps, WaterBody } from '@/types';
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 
+// Define the structure of each water body
+interface WaterBody {
+  id: string; // Unique identifier for each water body
+  type: string;
+  waterLevel: 'Seasonal' | 'Perennial' | 'Unknown'; // Possible water levels
+  irrigationPotential: number;
+  locations: string[];
+}
+
+// Define the props for the WaterResourceDistributionChart component
+interface WaterResourceDistributionChartProps {
+  waterBodies: WaterBody[];
+  selectedVillage: string;
+}
+
+// Define the structure of chart data
 interface ChartData {
   type: string;
   Seasonal: number;
   Perennial: number;
 }
 
-interface TooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    name: string;
-    value: number;
-    payload: ChartData;
-  }>;
-  label?: string;
+// Define the structure of tooltip payload
+interface TooltipPayload {
+  name: string;
+  value: number;
+  payload: ChartData;
 }
 
+// Define the structure for legend payload
+interface LegendPayload {
+  value: string;
+  color?: string; // Make color optional to align with Recharts
+}
+
+// Define the structure for custom label props
 interface CustomLabelProps {
   x: number;
   y: number;
@@ -39,18 +60,14 @@ interface CustomLabelProps {
   value: number;
 }
 
-interface LegendProps {
-  payload: Array<{
-    value: string;
-    color: string;
-  }>;
-}
-
+// Define the color scheme for different water levels
 const WATER_LEVEL_COLORS: { [key in WaterBody['waterLevel']]: string } = {
-  Seasonal: '#FF8042',
-  Perennial: '#0088FE',
+  Seasonal: '#FF8042',   // Orange
+  Perennial: '#0088FE',  // Blue
+  Unknown: '#808080',    // Grey
 };
 
+// Styled component for chart wrapper
 const ChartWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
   height: '400px',
@@ -60,7 +77,8 @@ const ChartWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
 }));
 
-const CustomTooltip: React.FC<TooltipProps> = ({
+// Custom Tooltip Component
+const CustomTooltipComponent: React.FC<{ active?: boolean; payload?: TooltipPayload[]; label?: string }> = ({
   active,
   payload,
   label,
@@ -70,7 +88,7 @@ const CustomTooltip: React.FC<TooltipProps> = ({
     return (
       <Box
         sx={{
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
           padding: '10px',
           border: '1px solid #ccc',
           borderRadius: '5px',
@@ -91,10 +109,10 @@ const CustomTooltip: React.FC<TooltipProps> = ({
   return null;
 };
 
-const CustomLabel: React.FC<CustomLabelProps> = (props) => {
-  const { x, y, width, height, value } = props;
+// Custom Label Component for Bars
+const CustomLabelComponent: React.FC<CustomLabelProps> = ({ x, y, width, height, value }) => {
   if (!value || value === 0) return null;
-  
+
   return (
     <text
       x={x + width / 2}
@@ -103,23 +121,24 @@ const CustomLabel: React.FC<CustomLabelProps> = (props) => {
       textAnchor="middle"
       dominantBaseline="middle"
       fontSize={12}
+      fontWeight="bold"
     >
       {value.toFixed(1)}
     </text>
   );
 };
 
-const renderLegend: React.FC<LegendProps> = (props) => {
-  const { payload } = props;
+// Custom Legend Component
+const renderLegendComponent: React.FC<{ payload: LegendPayload[] }> = ({ payload }) => {
   return (
-    <Box sx={{ display: 'flex', gap: 2 }}>
+    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
       {payload.map((entry, index) => (
-        <Box key={`item-${index}`} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Box key={`legend-item-${index}`} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Box
             sx={{
               width: 16,
               height: 16,
-              backgroundColor: entry.color,
+              backgroundColor: entry.color || '#000', // Provide a fallback color
               borderRadius: '50%',
             }}
           />
@@ -130,10 +149,19 @@ const renderLegend: React.FC<LegendProps> = (props) => {
   );
 };
 
+// Define the interface for the onClick handler's data parameter
+interface BarOnClickData {
+  type: string;
+  name: string;
+  value: number;
+  [key: string]: any; // Allow additional properties
+}
+
+// WaterResourceDistributionChart Component
 const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartProps> = ({ waterBodies = [], selectedVillage }) => {
   const router = useRouter();
 
-  const chartData = useMemo(() => {
+  const chartData: ChartData[] = useMemo(() => {
     if (!Array.isArray(waterBodies)) {
       console.error('waterBodies is not an array');
       return [];
@@ -141,32 +169,34 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
 
     console.log('Processing water bodies for:', selectedVillage);
 
+    // Filter water bodies based on selected village
     const filteredWaterBodies = selectedVillage === 'All'
       ? waterBodies
-      : waterBodies.filter(wb => {
-          return Array.isArray(wb?.locations) && 
-                 wb.locations.some(location => 
-                   location.toLowerCase() === selectedVillage.toLowerCase()
-                 );
-        });
+      : waterBodies.filter(wb => 
+          wb.locations.some(location => 
+            location.toLowerCase() === selectedVillage.toLowerCase()
+          )
+        );
 
     console.log('Filtered water bodies:', filteredWaterBodies);
 
-    const types = Array.from(new Set(filteredWaterBodies.map(wb => wb?.type).filter(Boolean)));
+    // Extract unique types
+    const types = Array.from(new Set(filteredWaterBodies.map(wb => wb.type).filter(Boolean)));
 
-    const data = types.map(type => {
+    // Aggregate irrigation potential by type and water level
+    const data: ChartData[] = types.map(type => {
       const seasonal = filteredWaterBodies
-        .filter(wb => wb?.type === type && wb?.waterLevel === 'Seasonal')
-        .reduce((sum, wb) => sum + (wb?.irrigationPotential || 0), 0);
+        .filter(wb => wb.type === type && wb.waterLevel === 'Seasonal')
+        .reduce((sum, wb) => sum + (wb.irrigationPotential || 0), 0);
 
       const perennial = filteredWaterBodies
-        .filter(wb => wb?.type === type && wb?.waterLevel === 'Perennial')
-        .reduce((sum, wb) => sum + (wb?.irrigationPotential || 0), 0);
+        .filter(wb => wb.type === type && wb.waterLevel === 'Perennial')
+        .reduce((sum, wb) => sum + (wb.irrigationPotential || 0), 0);
 
       return {
         type,
         Seasonal: seasonal || 0,
-        Perennial: perennial || 0
+        Perennial: perennial || 0,
       };
     });
 
@@ -174,11 +204,13 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
     return data;
   }, [waterBodies, selectedVillage]);
 
-  const handleBarClick = (data: ChartData) => {
+  // Handle bar click to navigate to details page
+  const handleBarClick = (type: string) => {
     if (!waterBodies?.length) return;
     
+    // Find a water body with the same type (assuming unique types)
     const waterBody = waterBodies.find(
-      (wb) => wb?.type === data.type
+      (wb) => wb.type === type
     );
     
     if (waterBody?.id) {
@@ -186,6 +218,7 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
     }
   };
 
+  // Render a message when there's no data
   if (!chartData.length) {
     return (
       <ChartWrapper>
@@ -201,7 +234,7 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
 
   return (
     <ChartWrapper>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" align="center" gutterBottom>
         Water Resource Distribution across the Panchayat
       </Typography>
       <ResponsiveContainer width="100%" height="90%">
@@ -228,25 +261,25 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
             }}
             tick={{ fontSize: 12 }}
           />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend content={renderLegend} />
+          <Tooltip content={<CustomTooltipComponent />} />
+          <Legend content={renderLegendComponent} />
           <Bar
             dataKey="Seasonal"
             stackId="a"
             fill={WATER_LEVEL_COLORS['Seasonal']}
             name="Seasonal"
-            onClick={handleBarClick}
+            onClick={(data: any, index: number) => handleBarClick(data.type)}
           >
-            <LabelList content={<CustomLabel />} position="center" />
+            <LabelList content={CustomLabelComponent} position="center" />
           </Bar>
           <Bar
             dataKey="Perennial"
             stackId="a"
             fill={WATER_LEVEL_COLORS['Perennial']}
             name="Perennial"
-            onClick={handleBarClick}
+            onClick={(data: any, index: number) => handleBarClick(data.type)}
           >
-            <LabelList content={<CustomLabel />} position="center" />
+            <LabelList content={CustomLabelComponent} position="center" />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

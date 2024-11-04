@@ -254,8 +254,7 @@ const DataCollection: React.FC = () => {
         return (
           <DataCollectionTable
             villages={villages}
-            category="Demographics"
-            fields={[
+            /**fields={[
               { key: 'households', label: 'Number of Households', type: 'number' },
               { key: 'totalPopulation', label: 'Total Population', type: 'number' },
               { key: 'malePopulation', label: 'Male Population', type: 'number' },
@@ -291,6 +290,7 @@ const DataCollection: React.FC = () => {
                 ]
               },
             ]}
+            **/
             initialData={formData['Demographics']}
             onDataChange={(newData) => handleDataChange('Demographics', newData)}
           />
@@ -397,7 +397,6 @@ const DataCollection: React.FC = () => {
               <CustomProgressStepper 
                 sections={sections}
                 activeSection={activeSection}
-                activeSubsection={activeSubsection}
               />
             )}
             <Typography variant="h5" gutterBottom>

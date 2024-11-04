@@ -1,3 +1,5 @@
+// src/pages/dashboard.tsx
+
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
@@ -11,7 +13,6 @@ import {
   CircularProgress,
   Divider,
   Card,
-  CardContent,
   Modal,
   TextField,
   Select,
@@ -19,6 +20,7 @@ import {
   FormControl,
   InputLabel,
   Chip,
+  SelectChangeEvent,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -30,8 +32,44 @@ import AdminOverviewCards from '../components/AdminOverviewCards';
 import AdminFunctionalities from '../components/AdminFunctionalities';
 import AdminHeader from '../components/AdminHeader';
 
-// ... (keep the UserData and VillageData interfaces)
+/**
+ * TypeScript Interfaces
+ */
 
+// Interface representing the structure of each user document in Firestore
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  gender: string;
+  age: number;
+  role: string;
+  gpRole?: string;        // Optional: Present only if role is 'Gram Panchayat Personnel'
+  district?: string;      // Optional: Present only if role is 'Gram Panchayat Personnel'
+  block?: string;         // Optional: Present only if role is 'Gram Panchayat Personnel'
+  gpName?: string;        // Optional: Present only if role is 'Gram Panchayat Personnel'
+  profilePhoto?: string;  // URL or path to the user's profile photo
+}
+
+// Interface representing the structure of each village entry in OdishaGpsMapping.json
+interface VillageData {
+  "GP Name": string;
+  "District": string;
+  "Block": string;
+  "Village Name": string;
+}
+
+// Interface representing the overall structure of OdishaGpsMapping.json
+interface OdishaGpsData {
+  districtVillageBlockGpsMapping: VillageData[];
+}
+
+/**
+ * Styled Components using Material-UI's styled API
+ */
+
+// Styled Paper component for consistent padding and layout
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   height: '100%',
@@ -39,6 +77,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   flexDirection: 'column',
 }));
 
+// Styled Box component for the profile section
 const ProfileSection = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -46,16 +85,19 @@ const ProfileSection = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(3),
 }));
 
+// Styled Typography component for individual info items
 const InfoItem = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(1),
 }));
 
+// Styled Box component for the village list container
 const VillageContainer = styled(Box)(({ theme }) => ({
   maxHeight: 300,
   overflow: 'auto',
   padding: theme.spacing(2),
 }));
 
+// Styled Chip component for displaying villages
 const VillageChip = styled(Chip)(({ theme }) => ({
   margin: theme.spacing(0.5),
   backgroundColor: theme.palette.primary.main,
@@ -65,6 +107,7 @@ const VillageChip = styled(Chip)(({ theme }) => ({
   },
 }));
 
+// Styled Box component for the modal content
 const ModalContent = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: '50%',
@@ -77,6 +120,7 @@ const ModalContent = styled(Box)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius,
 }));
 
+// Styled Card component for functionalities
 const FunctionalityCard = styled(Card)(({ theme }) => ({
   height: '100%',
   display: 'flex',
@@ -93,6 +137,7 @@ const FunctionalityCard = styled(Card)(({ theme }) => ({
   },
 }));
 
+// Styled Typography component for the main heading
 const StyledHeading = styled(Typography)(({ theme }) => ({
   fontSize: '2.5rem',
   fontWeight: 'bold',
@@ -100,6 +145,7 @@ const StyledHeading = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(4),
 }));
 
+// Styled Button component with Navy Blue color scheme
 const NavyButton = styled(Button)(({ theme }) => ({
   backgroundColor: '#000080', // Navy Blue
   color: 'white',
@@ -111,44 +157,85 @@ const NavyButton = styled(Button)(({ theme }) => ({
   width: '100%', // Make the button full width of the card
 }));
 
+/**
+ * Dashboard Component
+ */
+
 const Dashboard: React.FC = () => {
+  // State to hold user data fetched from Firestore
   const [userData, setUserData] = useState<UserData | null>(null);
+
+  // State to manage loading status
   const [loading, setLoading] = useState(true);
+
+  // State to hold the list of villages associated with the user's GP
   const [villages, setVillages] = useState<string[]>([]);
+
+  // State to manage the visibility of the edit profile modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // State to hold edited user data within the modal
   const [editedUserData, setEditedUserData] = useState<UserData | null>(null);
+
+  // Next.js router for navigation
   const router = useRouter();
 
+  /**
+   * useEffect Hook to handle authentication state changes and fetch user data
+   */
   useEffect(() => {
     const auth = getAuth(app);
+
+    // Listen for authentication state changes
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const db = getFirestore(app);
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data() as UserData;
-          setUserData(data);
-          setEditedUserData(data);
-          if (data.role === 'Gram Panchayat Personnel' && data.gpName) {
-            const gpVillages = gpData.districtVillageBlockGpsMapping
-              .filter((item: VillageData) => 
-                item["GP Name"] === data.gpName && 
-                item["District"] === data.district && 
-                item["Block"] === data.block
-              )
-              .map((item: VillageData) => item["Village Name"]);
-            setVillages(Array.from(new Set(gpVillages)).sort((a, b) => a.localeCompare(b)));
+
+        try {
+          // Fetch user document from Firestore
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+          if (userDoc.exists()) {
+            const data = userDoc.data() as UserData;
+            setUserData(data);
+            setEditedUserData(data);
+
+            // If the user is a Gram Panchayat Personnel, fetch associated villages
+            if (data.role === 'Gram Panchayat Personnel' && data.gpName) {
+              const gpVillages = (gpData as OdishaGpsData).districtVillageBlockGpsMapping
+                .filter((item: VillageData) =>
+                  item["GP Name"] === data.gpName &&
+                  item["District"] === data.district &&
+                  item["Block"] === data.block
+                )
+                .map((item: VillageData) => item["Village Name"]);
+
+              // Remove duplicates and sort the village names alphabetically
+              setVillages(Array.from(new Set(gpVillages)).sort((a, b) => a.localeCompare(b)));
+            }
+          } else {
+            console.error('User document does not exist in Firestore.');
+            // Optionally, handle this case in the UI
           }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // Optionally, handle this case in the UI
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       } else {
+        // If the user is not authenticated, redirect to the login page
         router.push('/login');
       }
     });
 
+    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [router]);
 
+  /**
+   * Function to handle user logout
+   */
   const handleLogout = async () => {
     const auth = getAuth(app);
     try {
@@ -156,22 +243,51 @@ const Dashboard: React.FC = () => {
       router.push('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+      // Optionally, provide user feedback
     }
   };
 
+  /**
+   * Function to open the edit profile modal
+   */
   const handleEditProfile = () => {
     setIsEditModalOpen(true);
   };
 
+  /**
+   * Function to close the edit profile modal
+   */
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  /**
+   * Function to handle input changes in the edit profile form for TextField components
+   */
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setEditedUserData(prev => ({ ...prev, [name]: value }));
+    if (name) {
+      setEditedUserData(prev => prev ? { ...prev, [name]: value } : prev);
+    }
   };
 
+  /**
+   * Function to handle input changes in the edit profile form for Select components
+   */
+  const handleSelectChange = (
+    e: SelectChangeEvent<string>
+  ) => {
+    const { name, value } = e.target;
+    if (name) {
+      setEditedUserData(prev => prev ? { ...prev, [name]: value } : prev);
+    }
+  };
+
+  /**
+   * Function to save the edited profile data to Firestore
+   */
   const handleSaveProfile = async () => {
     if (!userData || !editedUserData) return;
 
@@ -181,14 +297,19 @@ const Dashboard: React.FC = () => {
 
     const db = getFirestore(app);
     try {
-      await updateDoc(doc(db, 'users', user.uid), editedUserData);
+      // Spread editedUserData to ensure type compatibility
+      await updateDoc(doc(db, 'users', user.uid), { ...editedUserData } as Partial<UserData>);
       setUserData(editedUserData);
       setIsEditModalOpen(false);
     } catch (error) {
       console.error('Error updating profile:', error);
+      // Optionally, provide user feedback
     }
   };
 
+  /**
+   * Array of functionalities available to the user
+   */
   const functionalities = [
     {
       title: 'Collect and Update Data For Your GP',
@@ -212,10 +333,16 @@ const Dashboard: React.FC = () => {
     },
   ];
 
+  /**
+   * Function to handle clicks on functionality cards
+   */
   const handleFunctionalityClick = (path: string) => {
     router.push(path);
   };
 
+  /**
+   * Render a loading spinner while fetching user data
+   */
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
@@ -224,6 +351,9 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  /**
+   * Render a message if no user data is found
+   */
   if (!userData) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
@@ -232,9 +362,13 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  /**
+   * Main render of the Dashboard component
+   */
   return (
     <Box sx={{ flexGrow: 1 }}>
       {userData.role === 'Administrator' ? (
+        // Render Administrator Dashboard
         <>
           <AdminHeader
             userData={userData}
@@ -253,13 +387,14 @@ const Dashboard: React.FC = () => {
           </Box>
         </>
       ) : (
+        // Render Gram Panchayat Personnel Dashboard
         <Grid container spacing={3}>
-          {/* Existing profile section for Gram Panchayat Personnel */}
+          {/* Profile Section */}
           <Grid item xs={12} md={4}>
             <StyledPaper elevation={3}>
               <ProfileSection>
                 <Avatar
-                  src={userData.profilePhoto}
+                  src={userData.profilePhoto || '/default-avatar.png'} // Provide a default avatar
                   sx={{ width: 120, height: 120, mb: 2 }}
                 />
                 <Typography variant="h5" gutterBottom>
@@ -305,8 +440,9 @@ const Dashboard: React.FC = () => {
               )}
             </StyledPaper>
           </Grid>
+
+          {/* Functionalities Section */}
           <Grid item xs={12} md={8}>
-            {/* Existing content for Gram Panchayat Personnel */}
             <StyledPaper elevation={3}>
               <StyledHeading>
                 Welcome to Panchayat Yojana Platform
@@ -338,7 +474,7 @@ const Dashboard: React.FC = () => {
         </Grid>
       )}
 
-      {/* Existing Modal for editing profile */}
+      {/* Modal for Editing Profile */}
       <Modal
         open={isEditModalOpen}
         onClose={handleCloseEditModal}
@@ -375,7 +511,7 @@ const Dashboard: React.FC = () => {
             <Select
               name="gender"
               value={editedUserData?.gender || ''}
-              onChange={handleInputChange}
+              onChange={handleSelectChange} // Use the separate handler
             >
               <MenuItem value="male">Male</MenuItem>
               <MenuItem value="female">Female</MenuItem>

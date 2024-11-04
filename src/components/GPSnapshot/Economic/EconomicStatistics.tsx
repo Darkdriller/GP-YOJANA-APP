@@ -4,7 +4,6 @@ import {
   Home,
   Building,
   Wallet,
-  Road,
   Banknote,
   Construction
 } from 'lucide-react';
@@ -42,6 +41,13 @@ interface EconomicStatisticsProps {
   selectedVillage: string;
 }
 
+type MigrationStats = {
+  migrants: number;
+  migratingHouseholds: number;
+  landlessHouseholds: number;
+  mgnregsCards: number;
+};
+
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, subtitle = '' }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 flex flex-col">
@@ -70,26 +76,29 @@ const EconomicStatistics: React.FC<EconomicStatisticsProps> = ({
   const stats = useMemo(() => {
     if (!migrationData || !roadInfraData) return null;
 
-    const calculateTotals = (data: any) => {
+    const calculateTotals = (data: any): MigrationStats => {
       if (selectedVillage === 'All') {
-        return Object.values(data).reduce((acc: any, village: any) => ({
-          migrants: acc.migrants + (
-            (village.seasonalMigrantsMale || 0) + 
-            (village.seasonalMigrantsFemale || 0) + 
-            (village.permanentMigrantsMale || 0) + 
-            (village.permanentMigrantsFemale || 0)
-          ),
-          migratingHouseholds: acc.migratingHouseholds + (village.householdsReportingMigration || 0),
-          landlessHouseholds: acc.landlessHouseholds + (village.landlessHouseholds || 0),
-          mgnregsCards: acc.mgnregsCards + (village.householdsWithMGNREGSCards || 0)
-        }), { migrants: 0, migratingHouseholds: 0, landlessHouseholds: 0, mgnregsCards: 0 });
+        return Object.values(data).reduce<MigrationStats>(
+          (acc, village: any) => ({
+            migrants: acc.migrants + (
+              (village.seasonalMigrantsMale || 0) +
+              (village.seasonalMigrantsFemale || 0) +
+              (village.permanentMigrantsMale || 0) +
+              (village.permanentMigrantsFemale || 0)
+            ),
+            migratingHouseholds: acc.migratingHouseholds + (village.householdsReportingMigration || 0),
+            landlessHouseholds: acc.landlessHouseholds + (village.landlessHouseholds || 0),
+            mgnregsCards: acc.mgnregsCards + (village.householdsWithMGNREGSCards || 0)
+          }),
+          { migrants: 0, migratingHouseholds: 0, landlessHouseholds: 0, mgnregsCards: 0 }
+        );
       } else {
         const village = data[selectedVillage];
         return {
           migrants: (
-            (village.seasonalMigrantsMale || 0) + 
-            (village.seasonalMigrantsFemale || 0) + 
-            (village.permanentMigrantsMale || 0) + 
+            (village.seasonalMigrantsMale || 0) +
+            (village.seasonalMigrantsFemale || 0) +
+            (village.permanentMigrantsMale || 0) +
             (village.permanentMigrantsFemale || 0)
           ),
           migratingHouseholds: village.householdsReportingMigration || 0,
@@ -105,7 +114,7 @@ const EconomicStatistics: React.FC<EconomicStatisticsProps> = ({
     let totalRepairs = 0;
     if (selectedVillage === 'All') {
       // For all villages, sum up the repairs from the array
-      totalRepairs = Object.values(roadInfraData).reduce((sum, village) => 
+      totalRepairs = Object.values(roadInfraData).reduce((sum, village) =>
         sum + (village.repairRequired || 0), 0);
     } else {
       // For individual village, get the corresponding index from the array
@@ -116,7 +125,7 @@ const EconomicStatistics: React.FC<EconomicStatisticsProps> = ({
     }
 
     // Calculate total panchayat finances (not affected by village selection)
-    const totalFinances = panchayatFinances ? 
+    const totalFinances = panchayatFinances ?
       Object.values(panchayatFinances).reduce((sum, value) => sum + (value || 0), 0) : 0;
 
     return {

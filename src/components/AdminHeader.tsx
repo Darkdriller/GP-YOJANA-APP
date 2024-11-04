@@ -8,7 +8,7 @@ interface AdminHeaderProps {
   userData: {
     firstName: string;
     lastName: string;
-    profilePhoto: string;
+    profilePhoto?: string;
   };
   onEditProfile: () => void;
   onLogout: () => void;

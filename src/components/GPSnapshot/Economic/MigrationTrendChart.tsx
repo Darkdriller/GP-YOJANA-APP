@@ -59,13 +59,14 @@ const MigrationTrendChart: React.FC<MigrationTrendChartProps> = ({ data, selecte
     console.log('Preparing chart data...');
     
     try {
-      const relevantData = selectedVillage === 'All' 
-        ? Object.entries(data)
-        : [[selectedVillage, data[selectedVillage]]];
-
+      // Explicitly assert the type of Object.entries(data)
+      const relevantData: [string, VillageMigrationData][] = selectedVillage === 'All' 
+        ? (Object.entries(data) as [string, VillageMigrationData][])
+        : [[selectedVillage, data[selectedVillage]] as [string, VillageMigrationData]];
+  
       console.log('Relevant data before processing:', relevantData);
-
-      const processedData = relevantData.map(([village, values]) => {
+  
+      const processedData: ChartData[] = relevantData.map(([village, values]) => {
         // Log each village's data as we process it
         console.log('Processing village:', village, 'with values:', values);
         

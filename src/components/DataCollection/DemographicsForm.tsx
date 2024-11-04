@@ -22,13 +22,15 @@ const DemographicsForm: React.FC<DemographicsFormProps> = ({ data, onChange }) =
     const { name, value } = event.target;
     if (name.includes('.')) {
       const [group, field] = name.split('.');
-      onChange({
-        ...data,
-        [group]: {
-          ...data[group as keyof typeof data],
-          [field]: value,
-        },
-      });
+      if (group === 'populationByAgeGroups') {
+        onChange({
+          ...data,
+          populationByAgeGroups: {
+            ...data.populationByAgeGroups,
+            [field]: value,
+          },
+        });
+      }
     } else {
       onChange({
         ...data,

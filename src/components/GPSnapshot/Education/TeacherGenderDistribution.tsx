@@ -59,12 +59,6 @@ const TeacherGenderDistribution: React.FC<TeacherGenderDistributionProps> = ({ d
         width={500}
         height={400}
         margin={{ top: 20, right: 150, bottom: 20, left: 20 }}
-        arcLabelStyle={{
-          fill: 'white',
-          fontWeight: 'bold',
-          fontSize: '14px',
-          textOutline: '2px #00000060',
-        }}
         sx={{
           '& .MuiChartsLegend-label': {
             fontSize: '16px',

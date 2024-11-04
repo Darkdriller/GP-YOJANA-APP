@@ -17,18 +17,14 @@ const EmploymentStatus: React.FC<EmploymentStatusProps> = ({ data, selectedVilla
         village,
         landlessHouseholds: values.landlessHouseholds,
         mgnregsCards: values.householdsWithMGNREGSCards,
-        coverage: values.landlessHouseholds > 0 
-          ? (values.householdsWithMGNREGSCards / values.landlessHouseholds * 100).toFixed(1)
-          : 0
+        // coverage is omitted since it's a line
       }));
     } else {
       chartData = [{
         village: selectedVillage,
         landlessHouseholds: data[selectedVillage].landlessHouseholds,
         mgnregsCards: data[selectedVillage].householdsWithMGNREGSCards,
-        coverage: data[selectedVillage].landlessHouseholds > 0 
-          ? (data[selectedVillage].householdsWithMGNREGSCards / data[selectedVillage].landlessHouseholds * 100).toFixed(1)
-          : 0
+        // coverage is omitted since it's a line
       }];
     }
 
@@ -53,21 +49,17 @@ const EmploymentStatus: React.FC<EmploymentStatusProps> = ({ data, selectedVilla
             dataKey: 'landlessHouseholds',
             label: 'Landless Households',
             color: '#e64e2a',
+            // Removed type: 'line'
             valueFormatter: (value) => `${value} households`
           },
           { 
             dataKey: 'mgnregsCards',
             label: 'MGNREGS Card Holders',
             color: '#4ba93f',
+            // Removed type: 'line'
             valueFormatter: (value) => `${value} households`
-          },
-          { 
-            dataKey: 'coverage',
-            label: 'Coverage (%)',
-            color: '#545454',
-            type: 'line',
-            valueFormatter: (value) => `${value}%`
           }
+          // Removed coverage series
         ]}
         height={300}
         slotProps={{

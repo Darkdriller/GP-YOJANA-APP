@@ -54,12 +54,6 @@ const GenderDistribution: React.FC<GenderDistributionProps> = ({ data }) => {
         width={500}
         height={400}
         margin={{ top: 20, right: 150, bottom: 20, left: 20 }}
-        arcLabelStyle={{
-          fill: 'white',
-          fontWeight: 'bold',
-          fontSize: '14px',
-          textOutline: '2px #00000060', // Add a subtle text outline for better readability
-        }}
         sx={{
           '& .MuiChartsLegend-label': {
             fontSize: '16px',

@@ -62,12 +62,6 @@ const FacilityDistribution: React.FC<FacilityDistributionProps> = ({ data }) => 
         width={500}
         height={400}
         margin={{ top: 40, right: 20, bottom: 20, left: 20 }}
-        arcLabelStyle={{
-          fill: 'white',
-          fontWeight: 'bold',
-          fontSize: '14px',
-          textOutline: '2px #00000060',
-        }}
         sx={{
           '& .MuiChartsLegend-label': {
             fontSize: '12px',

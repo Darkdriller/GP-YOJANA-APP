@@ -1,18 +1,41 @@
+// src/components/GPSnapshot/Environmental/WaterBodiesConditionChart.tsx
+
 import React, { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Typography, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
+interface WaterBody {
+  type: string;
+  condition: string;
+  irrigationPotential: number;
+  locations: string[];
+}
+
+interface ConditionGroup {
+  count: number;
+  types: Set<string>;
+}
+
+interface ChartData {
+  name: string;
+  value: number;
+  total: number;
+  types: string[];
+  percentage: number;
+}
+
 interface WaterBodiesConditionChartProps {
-  waterBodies: any[];
+  waterBodies: WaterBody[];
   selectedVillage: string;
 }
 
 // Color scheme for different conditions
-const CONDITION_COLORS = {
-  'Clean': '#4CAF50',      // Green
-  'Polluted': '#FFA726',   // Orange
-  'Heavily polluted': '#EF5350'  // Red
+const CONDITION_COLORS: { [key: string]: string } = {
+  'Clean': '#4CAF50',          // Green
+  'Polluted': '#FFA726',       // Orange
+  'Heavily polluted': '#EF5350', // Red
+  'Unknown': '#9E9E9E',        // Grey for unknown conditions
 };
 
 const ChartWrapper = styled(Box)(({ theme }) => ({
@@ -44,7 +67,7 @@ const CustomTooltip = ({ active, payload }: any) => {
           Count: {value}
         </Typography>
         <Typography variant="body2">
-          Percentage: {Math.round((value / total) * 100)}%
+          Percentage: {value}% {/* Since percentage is already calculated */}
         </Typography>
         <Typography variant="body2" sx={{ mt: 1 }}>
           Types:
@@ -100,7 +123,7 @@ const renderLegend = (props: any) => {
             }}
           />
           <Typography variant="body2">
-            {entry.value} ({Math.round((entry.payload.value / entry.payload.total) * 100)}%)
+            {entry.value} ({entry.payload.percentage}%)
           </Typography>
         </Box>
       ))}
@@ -109,7 +132,7 @@ const renderLegend = (props: any) => {
 };
 
 const WaterBodiesConditionChart: React.FC<WaterBodiesConditionChartProps> = ({ waterBodies = [], selectedVillage }) => {
-  const chartData = useMemo(() => {
+  const chartData: ChartData[] = useMemo(() => {
     if (!Array.isArray(waterBodies)) {
       console.error('waterBodies is not an array');
       return [];
@@ -119,36 +142,41 @@ const WaterBodiesConditionChart: React.FC<WaterBodiesConditionChartProps> = ({ w
     const filteredWaterBodies = selectedVillage === 'All'
       ? waterBodies
       : waterBodies.filter(wb => 
-          Array.isArray(wb?.locations) && 
+          Array.isArray(wb.locations) && 
           wb.locations.some(location => 
             location.toLowerCase() === selectedVillage.toLowerCase()
           )
         );
 
     // Group water bodies by condition with their types
-    const conditionGroups = filteredWaterBodies.reduce((acc: any, wb) => {
+    const conditionGroups: { [key: string]: ConditionGroup } = filteredWaterBodies.reduce((acc, wb) => {
       const condition = wb.condition || 'Unknown';
       if (!acc[condition]) {
         acc[condition] = {
           count: 0,
-          types: new Set()
+          types: new Set<string>(),
         };
       }
       acc[condition].count += 1;
       acc[condition].types.add(wb.type);
       return acc;
-    }, {});
+    }, {} as { [key: string]: ConditionGroup });
 
     // Calculate total for percentages
-    const total = Object.values(conditionGroups).reduce((sum: any, group: any) => sum + group.count, 0);
+    const total = Object.values(conditionGroups).reduce((sum, group) => sum + group.count, 0);
+
+    // Prevent division by zero
+    if (total === 0) {
+      return [];
+    }
 
     // Transform into chart data format
-    const data = Object.entries(conditionGroups).map(([condition, group]: [string, any]) => ({
+    const data: ChartData[] = Object.entries(conditionGroups).map(([condition, group]) => ({
       name: condition,
       value: group.count,
       total,
       types: Array.from(group.types),
-      percentage: Math.round((group.count / total) * 100)
+      percentage: Math.round((group.count / total) * 100),
     }));
 
     console.log('Condition Chart Data:', data);
@@ -174,7 +202,7 @@ const WaterBodiesConditionChart: React.FC<WaterBodiesConditionChartProps> = ({ w
         Water Bodies by Condition
       </Typography>
       <ResponsiveContainer width="100%" height="85%">
-        <PieChart>
+        <RePieChart>
           <Pie
             data={chartData}
             cx="50%"
@@ -194,7 +222,7 @@ const WaterBodiesConditionChart: React.FC<WaterBodiesConditionChartProps> = ({ w
           </Pie>
           <Tooltip content={<CustomTooltip />} />
           <Legend content={renderLegend} />
-        </PieChart>
+        </RePieChart>
       </ResponsiveContainer>
     </ChartWrapper>
   );
