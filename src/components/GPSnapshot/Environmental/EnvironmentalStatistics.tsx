@@ -69,16 +69,16 @@ const EnvironmentalStatistics: React.FC<EnvironmentalStatisticsProps> = ({
     const calculateLandUseStats = () => {
       if (selectedVillage === 'All') {
         return Object.values(landUseData).reduce((acc, village) => ({
-          totalCultivable: acc.totalCultivable + (Number(village.totalCultivableLand) || 0),
-          irrigated: acc.irrigated + (Number(village.irrigatedLand) || 0),
-          forest: acc.forest + (Number(village.forestArea) || 0)
+          totalCultivable: acc.totalCultivable + (Number((village as any)?.totalCultivableLand) || 0),
+          irrigated: acc.irrigated + (Number((village as any)?.irrigatedLand) || 0),
+          forest: acc.forest + (Number((village as any)?.forestArea) || 0)
         }), { totalCultivable: 0, irrigated: 0, forest: 0 });
       } else {
         const villageData = landUseData[selectedVillage] || {};
         return {
-          totalCultivable: Number(villageData.totalCultivableLand) || 0,
-          irrigated: Number(villageData.irrigatedLand) || 0,
-          forest: Number(villageData.forestArea) || 0
+          totalCultivable: Number((villageData as any)?.totalCultivableLand) || 0,
+          irrigated: Number((villageData as any)?.irrigatedLand) || 0,
+          forest: Number((villageData as any)?.forestArea) || 0
         };
       }
     };

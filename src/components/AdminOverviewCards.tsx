@@ -196,6 +196,7 @@ const AdminOverviewCards: React.FC = () => {
       icon: <MapIcon />,
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       trend: null,
+      progress: undefined,
     },
     {
       title: 'Blocks',
@@ -203,6 +204,7 @@ const AdminOverviewCards: React.FC = () => {
       icon: <GroupsIcon />,
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       trend: null,
+      progress: undefined,
     },
     {
       title: 'Gram Panchayats',
@@ -210,6 +212,7 @@ const AdminOverviewCards: React.FC = () => {
       icon: <LocationCityIcon />,
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
       trend: null,
+      progress: undefined,
     },
     {
       title: 'Total Users',
@@ -217,6 +220,7 @@ const AdminOverviewCards: React.FC = () => {
       icon: <PeopleAltIcon />,
       gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
       subtext: `${gpPersonnel} GP Personnel • ${admins} Admins`,
+      progress: undefined,
     },
     {
       title: 'Data Collections',
@@ -224,6 +228,7 @@ const AdminOverviewCards: React.FC = () => {
       icon: <DatasetIcon />,
       gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
       trend: null,
+      progress: undefined,
     },
     {
       title: 'Active GPs (FY ' + currentFY.substring(2, 4) + '-' + currentFY.substring(7, 9) + ')',
@@ -231,6 +236,7 @@ const AdminOverviewCards: React.FC = () => {
       icon: <VerifiedIcon />,
       gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
       subtext: `GPs with data in current FY`,
+      progress: undefined,
     },
   ];
 

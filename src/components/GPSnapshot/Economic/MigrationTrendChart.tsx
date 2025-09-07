@@ -69,13 +69,19 @@ const MigrationTrendChart: React.FC<MigrationTrendChartProps> = ({ data, selecte
         // Log each village's data as we process it
         console.log('Processing village:', village, 'with values:', values);
         
-        const seasonal = (Number(values.seasonalMigrantsMale) || 0) + (Number(values.seasonalMigrantsFemale) || 0);
-        const permanent = (Number(values.permanentMigrantsMale) || 0) + (Number(values.permanentMigrantsFemale) || 0);
+        // Type guard to ensure values is an object with the expected properties
+        if (typeof values !== 'object' || !values) {
+          return { village: String(village), seasonal: 0, permanent: 0 };
+        }
+        
+        const migrationData = values as any;
+        const seasonal = (Number(migrationData.seasonalMigrantsMale) || 0) + (Number(migrationData.seasonalMigrantsFemale) || 0);
+        const permanent = (Number(migrationData.permanentMigrantsMale) || 0) + (Number(migrationData.permanentMigrantsFemale) || 0);
         
         console.log('Calculated totals for', village, '- Seasonal:', seasonal, 'Permanent:', permanent);
         
         return {
-          village,
+          village: String(village),
           seasonal,
           permanent,
         };

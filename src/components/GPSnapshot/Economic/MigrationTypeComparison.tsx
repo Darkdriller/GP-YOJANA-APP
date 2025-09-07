@@ -9,9 +9,6 @@ import {
   Legend,
   ResponsiveContainer,
   LabelList,
-  defs,
-  linearGradient,
-  stop,
 } from 'recharts';
 import { Box, useTheme } from '@mui/material';
 

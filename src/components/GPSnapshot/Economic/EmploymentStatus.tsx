@@ -65,7 +65,6 @@ const EmploymentStatus: React.FC<EmploymentStatusProps> = ({ data, selectedVilla
             dataKey: 'coverage',
             label: 'Coverage (%)',
             color: '#545454',
-            type: 'line',
             valueFormatter: (value) => `${value}%`
           }
         ]}

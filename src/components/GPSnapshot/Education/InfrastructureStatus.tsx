@@ -58,12 +58,6 @@ const InfrastructureStatus: React.FC<InfrastructureStatusProps> = ({ data }) => 
         width={500}
         height={400}
         margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
-        arcLabelStyle={{
-          fill: 'white',
-          fontWeight: 'bold',
-          fontSize: '06px',
-          textOutline: '2px #00000060',
-        }}
         sx={{
           '& .MuiChartsLegend-label': {
             fontSize: '06px',  // Decreased from 08px to 06px

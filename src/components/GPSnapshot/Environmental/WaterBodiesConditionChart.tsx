@@ -148,7 +148,7 @@ const WaterBodiesConditionChart: React.FC<WaterBodiesConditionChartProps> = ({ w
       value: group.count,
       total,
       types: Array.from(group.types),
-      percentage: Math.round((group.count / total) * 100)
+      percentage: Number(total) > 0 ? Math.round((group.count / Number(total)) * 100) : 0
     }));
 
     console.log('Condition Chart Data:', data);

@@ -11,7 +11,20 @@ import {
   LabelList
 } from 'recharts';
 import { Typography, Box } from '@mui/material';
-import { WaterResourceDistributionChartProps, WaterBody } from '@/types';
+// Define interfaces inline since @/types doesn't exist
+interface WaterBody {
+  id: string;
+  type: string;
+  locations: string[];
+  waterLevel: string;
+  condition: string;
+  irrigationPotential: number;
+}
+
+interface WaterResourceDistributionChartProps {
+  waterBodies: WaterBody[];
+  selectedVillage: string;
+}
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 
