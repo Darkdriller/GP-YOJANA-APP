@@ -53,7 +53,7 @@ const AgeDistribution: React.FC<AgeDistributionProps> = ({ data }) => {
           },
         }}
         margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
-        legend={{ hidden: false, position: 'top' }}
+        legend={{ hidden: false, position: { vertical: 'top', horizontal: 'middle' } }}
       />
     </Box>
   );

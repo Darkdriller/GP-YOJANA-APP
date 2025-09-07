@@ -4,7 +4,7 @@ import {
   Home,
   Building,
   Wallet,
-  Road,
+  Route,
   Banknote,
   Construction
 } from 'lucide-react';
@@ -85,6 +85,9 @@ const EconomicStatistics: React.FC<EconomicStatisticsProps> = ({
         }), { migrants: 0, migratingHouseholds: 0, landlessHouseholds: 0, mgnregsCards: 0 });
       } else {
         const village = data[selectedVillage];
+        if (!village) {
+          return { migrants: 0, migratingHouseholds: 0, landlessHouseholds: 0, mgnregsCards: 0 };
+        }
         return {
           migrants: (
             (village.seasonalMigrantsMale || 0) + 
@@ -99,28 +102,45 @@ const EconomicStatistics: React.FC<EconomicStatisticsProps> = ({
       }
     };
 
-    const migrationStats = calculateTotals(migrationData);
+    const migrationStats = calculateTotals(migrationData) as {
+      migrants: number;
+      migratingHouseholds: number;
+      landlessHouseholds: number;
+      mgnregsCards: number;
+    };
 
     // Calculate total repairs required
     let totalRepairs = 0;
-    if (selectedVillage === 'All') {
-      // For all villages, sum up the repairs from the array
-      totalRepairs = Object.values(roadInfraData).reduce((sum, village) => 
-        sum + (village.repairRequired || 0), 0);
-    } else {
-      // For individual village, get the corresponding index from the array
-      const villageIndex = Object.keys(migrationData).indexOf(selectedVillage);
-      if (villageIndex !== -1 && roadInfraData[villageIndex]) {
-        totalRepairs = roadInfraData[villageIndex].repairRequired || 0;
+    if (Array.isArray(roadInfraData)) {
+      if (selectedVillage === 'All') {
+        // For all villages, sum up the repairs from the array
+        totalRepairs = roadInfraData.reduce((sum, road) => 
+          sum + (road?.repairRequired || 0), 0);
+      } else {
+        // For individual village, align by village index derived from migrationData keys
+        const villageNames = Object.keys(migrationData);
+        const villageIndex = villageNames.indexOf(selectedVillage);
+        if (villageIndex !== -1 && roadInfraData[villageIndex]) {
+          totalRepairs = Number(roadInfraData[villageIndex].repairRequired) || 0;
+        } else {
+          totalRepairs = 0;
+        }
       }
+    } else if (roadInfraData && typeof roadInfraData === 'object') {
+      // Handle object format
+      totalRepairs = Object.values(roadInfraData).reduce((sum, road: any) => 
+        sum + (road?.repairRequired || 0), 0);
     }
 
     // Calculate total panchayat finances (not affected by village selection)
     const totalFinances = panchayatFinances ? 
-      Object.values(panchayatFinances).reduce((sum, value) => sum + (value || 0), 0) : 0;
+      Object.values(panchayatFinances as Record<string, number>).reduce((sum: number, value: number) => sum + (value || 0), 0) : 0;
 
     return {
-      ...migrationStats,
+      migrants: migrationStats.migrants,
+      migratingHouseholds: migrationStats.migratingHouseholds,
+      landlessHouseholds: migrationStats.landlessHouseholds,
+      mgnregsCards: migrationStats.mgnregsCards,
       roadRepairs: totalRepairs,
       totalFinances
     };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calculator, Users, School, GraduationCap, UserPlus, Building2 } from 'lucide-react';
+import { School, GraduationCap, UserPlus, Building2, BookOpen, TrendingUp } from 'lucide-react';
 
 interface DemographicsData {
   [village: string]: {
@@ -69,11 +69,11 @@ const StatisticsOverview: React.FC<StatisticsOverviewProps> = ({
   selectedVillage 
 }) => {
   const [stats, setStats] = useState({
-    totalHouseholds: 0,
-    totalPopulation: 0,
     totalSchools: 0,
-    teacherSchoolRatio: 0,
+    totalTeachers: 0,
     totalStudents: 0,
+    studentTeacherRatio: 0,
+    avgStudentsPerSchool: 0,
     newClassrooms: 0
   });
 
@@ -82,21 +82,26 @@ const StatisticsOverview: React.FC<StatisticsOverviewProps> = ({
       let relevantDemographicsData: DemographicsData = {};
       let relevantEducationData: EducationData = {};
 
-      // Filter data based on selected village
-      if (selectedVillage === 'All') {
+      // Filter data based on selected village (check for 'all' in lowercase)
+      if (selectedVillage === 'all' || selectedVillage === 'All') {
         relevantDemographicsData = demographicsData;
         relevantEducationData = educationData;
       } else {
-        relevantDemographicsData = { [selectedVillage]: demographicsData[selectedVillage] };
+        const villageDemo = demographicsData[selectedVillage];
+        if (villageDemo) {
+          relevantDemographicsData = { [selectedVillage]: villageDemo };
+        }
         relevantEducationData = { [selectedVillage]: educationData[selectedVillage] || [] };
       }
 
-      // Calculate demographics statistics
-      const households = Object.values(relevantDemographicsData).reduce((sum, village) => 
-        sum + parseInt(village.households || '0', 10), 0);
+      // Calculate demographics statistics with null safety
+      const households = Object.values(relevantDemographicsData)
+        .filter(village => village != null)
+        .reduce((sum, village) => sum + parseInt(village.households || '0', 10), 0);
       
-      const population = Object.values(relevantDemographicsData).reduce((sum, village) => 
-        sum + parseInt(village.totalPopulation || '0', 10), 0);
+      const population = Object.values(relevantDemographicsData)
+        .filter(village => village != null)
+        .reduce((sum, village) => sum + parseInt(village.totalPopulation || '0', 10), 0);
 
       // Calculate education statistics
       let totalSchools = 0;
@@ -109,19 +114,25 @@ const StatisticsOverview: React.FC<StatisticsOverviewProps> = ({
           totalSchools += villageSchools.length;
           
           villageSchools.forEach(school => {
-            totalTeachers += (school.teachersMale + school.teachersFemale);
-            totalStudents += school.studentsTotal;
-            requiredClassrooms += school.newClassroomsRequired;
+            // Parse values as they might be strings from Firebase
+            const teachersMale = parseInt(String(school.teachersMale || 0), 10);
+            const teachersFemale = parseInt(String(school.teachersFemale || 0), 10);
+            const studentsTotal = parseInt(String(school.studentsTotal || 0), 10);
+            const newClassroomsRequired = parseInt(String(school.newClassroomsRequired || 0), 10);
+            
+            totalTeachers += (teachersMale + teachersFemale);
+            totalStudents += studentsTotal;
+            requiredClassrooms += newClassroomsRequired;
           });
         }
       });
 
       setStats({
-        totalHouseholds: households,
-        totalPopulation: population,
         totalSchools,
-        teacherSchoolRatio: totalSchools ? +(totalTeachers / totalSchools).toFixed(1) : 0,
+        totalTeachers,
         totalStudents,
+        studentTeacherRatio: totalTeachers ? +(totalStudents / totalTeachers).toFixed(1) : 0,
+        avgStudentsPerSchool: totalSchools ? Math.round(totalStudents / totalSchools) : 0,
         newClassrooms: requiredClassrooms
       });
     }
@@ -130,35 +141,39 @@ const StatisticsOverview: React.FC<StatisticsOverviewProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <StatCard
-        title="Total Households"
-        value={stats.totalHouseholds.toLocaleString()}
-        icon={Calculator}
-      />
-      <StatCard
-        title="Total Population"
-        value={stats.totalPopulation.toLocaleString()}
-        icon={Users}
-      />
-      <StatCard
         title="Total Schools"
         value={stats.totalSchools.toLocaleString()}
         icon={School}
+        subtitle="Educational institutions"
       />
       <StatCard
-        title="Teachers per School"
-        value={stats.teacherSchoolRatio}
-        subtitle="Average ratio"
+        title="Total Teachers"
+        value={stats.totalTeachers.toLocaleString()}
         icon={GraduationCap}
+        subtitle="Teaching staff"
       />
       <StatCard
-        title="School Students"
+        title="Total Students"
         value={stats.totalStudents.toLocaleString()}
         icon={UserPlus}
+        subtitle="Enrolled students"
       />
       <StatCard
-        title="New Classrooms Required"
+        title="Student-Teacher Ratio"
+        value={`${stats.studentTeacherRatio}:1`}
+        subtitle="Students per teacher"
+        icon={BookOpen}
+      />
+      <StatCard
+        title="Average School Size"
+        value={stats.avgStudentsPerSchool}
+        subtitle="Students per school"
+        icon={TrendingUp}
+      />
+      <StatCard
+        title="Classrooms Needed"
         value={stats.newClassrooms}
-        subtitle="Based on infrastructure assessment"
+        subtitle="Infrastructure requirement"
         icon={Building2}
       />
     </div>

@@ -96,7 +96,8 @@ const UserGuide: React.FC = () => {
                   <ListItemIcon>
                     <ArrowRightIcon color="primary" />
                   </ListItemIcon>
-                  <ListItemText primary="Click on 'Data Collection' in the dashboard" />
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  <ListItemText primary={"Click on 'Data Collection' in the dashboard"} />
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>

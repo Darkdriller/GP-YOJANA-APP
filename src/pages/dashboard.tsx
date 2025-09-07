@@ -30,7 +30,27 @@ import AdminOverviewCards from '../components/AdminOverviewCards';
 import AdminFunctionalities from '../components/AdminFunctionalities';
 import AdminHeader from '../components/AdminHeader';
 
-// ... (keep the UserData and VillageData interfaces)
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  gender: string;
+  age: string;
+  role: string;
+  gpRole?: string;
+  district?: string;
+  block?: string;
+  gpName?: string;
+  profilePhoto?: string;
+}
+
+interface VillageData {
+  "GP Name": string;
+  "District": string;
+  "Block": string;
+  "Village Name": string;
+}
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),

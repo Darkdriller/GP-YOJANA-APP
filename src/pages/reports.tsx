@@ -38,7 +38,7 @@ import {
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { app } from '../lib/firebase';
-import * as XLSX from 'xlsx';
+import * as XLSX from '@/lib/sheetjs/xlsx.mjs';
 
 interface TabPanelProps {
   children?: React.ReactNode;
