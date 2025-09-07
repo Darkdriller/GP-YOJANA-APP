@@ -1316,14 +1316,14 @@ const ConsolidatedDashboard: React.FC = () => {
                       const finances = record.formData?.['Panchayat Finances'] || record.formData?.PanchayatFinances;
                       if (finances) {
                         return {
-                          cfc: (parseInt(acc.cfc || 0) + parseInt(finances.cfc || 0)).toString(),
-                          sfc: (parseInt(acc.sfc || 0) + parseInt(finances.sfc || 0)).toString(),
-                          ownSources: (parseInt(acc.ownSources || 0) + parseInt(finances.ownSources || 0)).toString(),
-                          mgnregs: (parseInt(acc.mgnregs || 0) + parseInt(finances.mgnregs || 0)).toString()
+                          cfc: parseInt(String(acc.cfc || 0)) + parseInt(String(finances.cfc || 0)),
+                          sfc: parseInt(String(acc.sfc || 0)) + parseInt(String(finances.sfc || 0)),
+                          ownSources: parseInt(String(acc.ownSources || 0)) + parseInt(String(finances.ownSources || 0)),
+                          mgnregs: parseInt(String(acc.mgnregs || 0)) + parseInt(String(finances.mgnregs || 0))
                         };
                       }
                       return acc;
-                    }, { cfc: '0', sfc: '0', ownSources: '0', mgnregs: '0' })}
+                    }, { cfc: 0, sfc: 0, ownSources: 0, mgnregs: 0 })}
                     selectedVillage="all"
                     villageNames={(() => {
                       const migrationData = filteredData.reduce((acc, record) => {

@@ -403,7 +403,7 @@ const Reports: React.FC = () => {
     if (formData.Demographics) {
       const demographicsData = Object.entries(formData.Demographics).map(([village, data]) => ({
         Village: village,
-        ...data
+        ...((typeof data === 'object' && data !== null) ? data : {})
       }));
       const demographicsSheet = XLSX.utils.json_to_sheet(demographicsData);
       XLSX.utils.book_append_sheet(workbook, demographicsSheet, 'Demographics');

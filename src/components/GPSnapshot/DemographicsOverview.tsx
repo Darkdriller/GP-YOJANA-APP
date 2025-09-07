@@ -5,11 +5,12 @@ import { PieChart } from '@mui/x-charts/PieChart';
 
 interface DemographicsOverviewProps {
   data: any;
+  selectedVillage?: string;
 }
 
 const colors = ['#355fa4', '#e64e2a', '#4ba93f', '#545454'];
 
-const DemographicsOverview: React.FC<DemographicsOverviewProps> = ({ data }) => {
+const DemographicsOverview: React.FC<DemographicsOverviewProps> = ({ data, selectedVillage }) => {
   if (!data || typeof data !== 'object') {
     return <Typography>No data available</Typography>;
   }

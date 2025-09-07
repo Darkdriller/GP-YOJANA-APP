@@ -34,14 +34,12 @@ interface UserData {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
-  gender: string;
-  age: string;
+  mobile: string;
+  district: string;
+  block: string;
+  gpName: string;
   role: string;
-  gpRole?: string;
-  district?: string;
-  block?: string;
-  gpName?: string;
+  registrationNumber: string;
   profilePhoto?: string;
 }
 
@@ -201,7 +199,7 @@ const Dashboard: React.FC = () => {
 
     const db = getFirestore(app);
     try {
-      await updateDoc(doc(db, 'users', user.uid), editedUserData);
+      await updateDoc(doc(db, 'users', user.uid), editedUserData as any);
       setUserData(editedUserData);
       setIsEditModalOpen(false);
     } catch (error) {
@@ -286,13 +284,10 @@ const Dashboard: React.FC = () => {
                   {userData.firstName} {userData.lastName}
                 </Typography>
                 <InfoItem variant="body1">Email: {userData.email}</InfoItem>
-                <InfoItem variant="body1">Phone: {userData.phoneNumber}</InfoItem>
-                <InfoItem variant="body1">Gender: {userData.gender}</InfoItem>
-                <InfoItem variant="body1">Age: {userData.age}</InfoItem>
+                <InfoItem variant="body1">Phone: {userData.mobile}</InfoItem>
                 <InfoItem variant="body1">Role: {userData.role}</InfoItem>
                 {userData.role === 'Gram Panchayat Personnel' && (
                   <>
-                    <InfoItem variant="body1">GP Role: {userData.gpRole}</InfoItem>
                     <InfoItem variant="body1">District: {userData.district}</InfoItem>
                     <InfoItem variant="body1">Block: {userData.block}</InfoItem>
                     <InfoItem variant="body1">Gram Panchayat: {userData.gpName}</InfoItem>
@@ -386,29 +381,8 @@ const Dashboard: React.FC = () => {
             fullWidth
             margin="normal"
             label="Phone Number"
-            name="phoneNumber"
-            value={editedUserData?.phoneNumber || ''}
-            onChange={handleInputChange}
-          />
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Gender</InputLabel>
-            <Select
-              name="gender"
-              value={editedUserData?.gender || ''}
-              onChange={handleInputChange}
-            >
-              <MenuItem value="male">Male</MenuItem>
-              <MenuItem value="female">Female</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Age"
-            name="age"
-            type="number"
-            value={editedUserData?.age || ''}
+            name="mobile"
+            value={editedUserData?.mobile || ''}
             onChange={handleInputChange}
           />
           <Button variant="contained" color="primary" onClick={handleSaveProfile} sx={{ mt: 2 }}>

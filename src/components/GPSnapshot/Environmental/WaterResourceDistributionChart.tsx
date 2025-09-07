@@ -250,7 +250,7 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
             name="Seasonal"
             onClick={handleBarClick}
           >
-            <LabelList content={<CustomLabel />} position="center" />
+            <LabelList content={(props: CustomLabelProps) => <CustomLabel {...props} />} position="center" />
           </Bar>
           <Bar
             dataKey="Perennial"
@@ -259,7 +259,7 @@ const WaterResourceDistributionChart: React.FC<WaterResourceDistributionChartPro
             name="Perennial"
             onClick={handleBarClick}
           >
-            <LabelList content={<CustomLabel />} position="center" />
+            <LabelList content={(props: CustomLabelProps) => <CustomLabel {...props} />} position="center" />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

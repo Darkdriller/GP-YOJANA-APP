@@ -31,6 +31,8 @@ interface DemographicsData {
 
 interface DataCollectionTableProps {
   villages: string[];
+  category?: string;
+  fields?: any[];
   initialData?: DemographicsData;
   onDataChange?: (data: DemographicsData) => void;
 }

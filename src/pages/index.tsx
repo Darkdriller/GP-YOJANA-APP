@@ -14,7 +14,7 @@ const StyledAppBar = styled(AppBar)({
   position: 'relative',
 });
 
-const NavButton = styled(Button)({
+const NavButton = styled(Button)<{component?: string}>({
   color: '#1a365d', // Dark navy blue
   textTransform: 'none',
   padding: '8px 16px',
@@ -150,16 +150,14 @@ export default function Home() {
                 <div className="flex gap-2">
                   <Link href="/signup" passHref legacyBehavior>
                     <AuthButton 
-                      component="a"
-                      variant="contained"
+                                            variant="contained"
                     >
                       {t('auth.signup')}
                     </AuthButton>
                   </Link>
                   <Link href="/login" passHref legacyBehavior>
                     <AuthButton 
-                      component="a"
-                      variant="contained"
+                                            variant="contained"
                     >
                       {t('auth.login')}
                     </AuthButton>

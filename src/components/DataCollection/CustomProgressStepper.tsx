@@ -16,11 +16,13 @@ interface Section {
 interface CustomProgressStepperProps {
   sections: Section[];
   activeSection: number;
+  activeSubsection?: number;
 }
 
 const CustomProgressStepper: React.FC<CustomProgressStepperProps> = ({ 
   sections, 
   activeSection, 
+  activeSubsection,
 }) => {
   return (
     <Box sx={{ width: '100%', mb: 4 }}>
